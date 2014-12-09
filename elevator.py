@@ -10,7 +10,7 @@ down.extend(range(11,16)) #Down call: False, 11, 12, 13, 14, 15
 #call = [11, 15, 13, 12, 15, 12, 2, 5, 15, 8, 10, 13, 6, 9, 0, 4, 15, 10, 8, 15]
 option = range(0, 16)
 option.append(None)
-call = [random.choice(option) for i in range(0,1000)]
+call = [random.choice(option) for i in range(0,10000)]
 
 def elevator_control(call, initial):
     current = initial
@@ -185,69 +185,53 @@ def choose_goal(status, goal, message, current):
         
     return (goal, status)
 
-def largest(message):
+def large_small(message, comparator, base, ref):
     
-    def f(ls):
-        if not ls:
-           return -1
-        elif ls[0] in down:
-           return f(ls[1:])
+    if not message:
+        return base
+    elif message[0] in ref:
+        return large_small(message[1:], comparator, base, ref)
+    else:
+        result = large_small(message[1:], comparator, base, ref)
+        if comparator(goal_val(message[0]), goal_val(result)):
+            return message[0]
         else:
-           result = f(ls[1:])
-           if goal_val(ls[0]) > goal_val(result):
-              return ls[0]
-           else:
-              return result
+            return result 
 
-    return f(message)
-           
+def high_low(message, comparator, base):
+    
+    if not message:
+        return base
+    else:
+        result = high_low(message[1:], comparator, base)
+        if comparator(goal_val(message[0]), goal_val(result)):
+            return message[0]
+        else:
+            return result
+
+
+def comparator_greater(x, y):
+    return x > y
+
+def comparator_less(x, y):
+    return x < y
+
+def largest(message):
+        
+    return large_small(message, comparator_greater, -1, down)
     
 def smallest(message):
-    
-    def f(ls):
-        if not ls:
-           return 20
-        elif ls[0] in up:
-           return f(ls[1:])
-        else:
-           result = f(ls[1:])
-           if goal_val(ls[0]) < goal_val(result):
-              return ls[0]
-           else:
-              return result
 
-    return f(message)
-
+    return large_small(message, comparator_less, 20, up)
 
 def highest(message):
+        
+    return high_low(message, comparator_greater, -1)
     
-    def f(ls):
-        if not ls:
-           return -1
-        else:
-           result = f(ls[1:])
-           if goal_val(ls[0]) > goal_val(result):
-              return ls[0]
-           else:
-              return result
-
-    return f(message)
-
 def lowest(message):
 
-    def f(ls):
-        if not ls:
-           return 20
-        else:
-           result = f(ls[1:])
-           if goal_val(ls[0]) < goal_val(result):
-              return ls[0]
-           else:
-              return result
-
-    return f(message)
-   
-   
+    return high_low(message, comparator_less, 20)
+      
 def end(message, counter):
     return message or counter < len(call)
 
